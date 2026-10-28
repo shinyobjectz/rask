@@ -110,7 +110,8 @@ pub fn not_done(root: &Path, main: &str, id: &str, feature: &str) -> Result<Vec<
     // the files its commits changed, as main has them now: a stub one commit added and a later one finished is fine
     let mut files: Vec<String> = vec![];
     for s in &shas {
-        for f in git(root, &["diff-tree", "--no-commit-id", "--name-only", "-r", s, "--", "*.rs"])?.lines() {
+        // vendored code is never ours (walk.rs): its upstream stubs don't hold a task open
+        for f in git(root, &["diff-tree", "--no-commit-id", "--name-only", "-r", s, "--", "*.rs", ":!vendor/*", ":!*/vendor/*"])?.lines() {
             if !files.iter().any(|x| x == f) {
                 files.push(f.to_string());
             }
