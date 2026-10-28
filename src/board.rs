@@ -61,8 +61,10 @@ pub fn branch(root: &Path, lane: &str) -> Result<(), String> {
     if have {
         return Ok(());
     }
-    let made = Command::new("but").args(["branch", "new", lane]).current_dir(root).status().map_err(|e| format!("but: {e}"))?;
-    made.success().then_some(()).ok_or(format!("but branch new {lane} failed"))
+    // an applied branch with no commits is left out of `but branch list`, so "already applied" means it's there
+    let made = Command::new("but").args(["branch", "new", lane]).current_dir(root).output().map_err(|e| format!("but: {e}"))?;
+    let said = format!("{}{}", String::from_utf8_lossy(&made.stdout), String::from_utf8_lossy(&made.stderr));
+    (made.status.success() || said.contains("already applied")).then_some(()).ok_or(format!("but branch new {lane} failed: {}", said.trim()))
 }
 
 fn git(root: &Path, args: &[&str]) -> Result<String, String> {
