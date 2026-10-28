@@ -21,8 +21,8 @@ Tasks for Rust projects, planned in feature files, marked in the code, and check
   reads them). A `todo!()`, `unimplemented!()` or TODO/FIXME/XXX comment belongs to a task when it says `rask: ID`
   or sits in, or just under, a function a task mark is on. Any other stub is **loose**, and `rask check` fails on it.
 - **Done is said, then checked.** The commit that finishes SH1 tags its scenario `@done` and writes its status there.
-  `rask done SH1` closes it only when that tag is on `origin/main`, commits whose messages start `SH1: ` are there and
-  changed the feature file, no `rask: SH1` mark is left, and no file they touched holds a loose stub. A commit named
+  `rask done SH1` closes it only when that tag is on `origin/main` (the status beside it), commits whose messages
+  start `SH1: ` are there, no `rask: SH1` mark is left, and no file they touched holds a loose stub. A commit named
   `SH1: ` without the tag is progress, not the end. A task built before its project used rask has no such commits:
   the tag on `origin/main` and no mark left close it.
 - **Claims are live.** `rask claim SH1 shaders` gives SH1 to the lane `shaders` and makes that GitButler branch if

@@ -103,10 +103,6 @@ pub fn not_done(root: &Path, main: &str, id: &str, feature: &str) -> Result<Vec<
         }
         return Ok(why);
     }
-    let touched = shas.iter().any(|s| git(root, &["diff-tree", "--no-commit-id", "--name-only", "-r", s]).is_ok_and(|o| o.lines().any(|l| l == feature)));
-    if !touched {
-        why.push(format!("its commits don't change {feature}: write the scenario's status there (what was built, what proves it)"));
-    }
     let left = git(root, &["grep", "-n", "-E", &format!("rask: {id}([^A-Za-z0-9-]|$)"), main, "--", "*.rs"]).unwrap_or_default();
     for l in left.lines().take(5) {
         why.push(format!("still marked on {main}: {}", l.trim_start_matches(&format!("{main}:"))));
