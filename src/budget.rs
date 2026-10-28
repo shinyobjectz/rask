@@ -90,8 +90,10 @@ pub fn check(crates: &[Crate], plans: &[&crate::spec::Scenario]) -> Vec<Over> {
                 if r.lines > FILE_MAX {
                     out.push(Over { file: s.file.clone(), line: s.line, what: format!("{} plans {} at {} lines, over the file limit of {FILE_MAX}", s.id, r.file, r.lines) });
                 }
-                let now = planned.get(&r.file).copied().unwrap_or(0);
-                planned.insert(r.file.clone(), now.max(r.lines));
+                // a row names its file from the project root (runtime/x/src/lib.rs), the crate keys it from its own dir
+                let key = planned.keys().find(|k| r.file == **k || r.file.ends_with(&format!("/{k}"))).cloned().unwrap_or_else(|| r.file.clone());
+                let now = planned.get(&key).copied().unwrap_or(0);
+                planned.insert(key, now.max(r.lines));
                 by.push(s.id.clone());
             }
         }
