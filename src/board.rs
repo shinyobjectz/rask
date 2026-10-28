@@ -24,9 +24,8 @@ impl Board {
             home.join(".local/state/rask")
         });
         let key = root.canonicalize().unwrap_or(root.to_path_buf()).to_string_lossy().trim_start_matches('/').replace('/', "-");
-        let dir = base.join(key);
-        std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
-        Ok(Board { dir })
+        // made on the first write, so a read in a throwaway checkout (an L1 export) leaves nothing behind
+        Ok(Board { dir: base.join(key) })
     }
 
     pub fn get(&self, id: &str) -> Entry {
@@ -40,6 +39,7 @@ impl Board {
     }
 
     pub fn put(&self, id: &str, e: &Entry, why: &str) -> Result<(), String> {
+        std::fs::create_dir_all(&self.dir).map_err(|e| format!("{}: {e}", self.dir.display()))?;
         let tmp = self.dir.join(format!(".{id}.new"));
         std::fs::write(&tmp, format!("state={}\nlane={}\ncommits={}\n", e.state, e.lane, e.commits)).map_err(|e| e.to_string())?;
         std::fs::rename(&tmp, self.dir.join(id)).map_err(|e| e.to_string())?;
@@ -84,6 +84,12 @@ pub fn commits(root: &Path, main: &str, id: &str) -> Result<Vec<String>, String>
 /// files they changed holds a loose stub
 pub fn not_done(root: &Path, main: &str, id: &str, feature: &str) -> Result<Vec<String>, String> {
     let mut why = vec![];
+    // done is said in the feature file, as main has it: a @done tag on the scenario, written with its status
+    let on_main = git(root, &["show", &format!("{main}:{feature}")]).unwrap_or_default();
+    let tagged = crate::spec::parse(Path::new(feature), &on_main)?.iter().any(|s| s.id == id && s.tags.iter().any(|t| t == "@done"));
+    if !tagged {
+        why.push(format!("its scenario in {feature} on {main} has no @done tag (the lane adds it with the commit that finishes it)"));
+    }
     let shas = commits(root, main, id)?;
     if shas.is_empty() {
         why.push(format!("no commit on {main} starts \"{id}: \" (land the branch first)"));

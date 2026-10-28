@@ -41,6 +41,11 @@ pub struct PlanRow {
 /// Every scenario with an id in one feature file
 pub fn read(path: &Path) -> Result<Vec<Scenario>, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    parse(path, &text)
+}
+
+/// Every scenario with an id in a feature file's text (`path` is where it's said to be)
+pub fn parse(path: &Path, text: &str) -> Result<Vec<Scenario>, String> {
     let mut out: Vec<Scenario> = vec![];
     let mut in_plan = false;
     let mut header: Option<Vec<String>> = None;
