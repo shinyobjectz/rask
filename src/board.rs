@@ -53,10 +53,11 @@ impl Board {
     }
 }
 
-/// The lane's GitButler branch, made when it isn't there
+/// The lane's GitButler branch, made when it isn't there. `but branch list` draws stacks (`*-shaders`, `└─sdk`): a
+/// name is a word with its leading marks taken off
 pub fn branch(root: &Path, lane: &str) -> Result<(), String> {
     let list = Command::new("but").args(["branch", "list"]).current_dir(root).output().map_err(|e| format!("but: {e}"))?;
-    let have = String::from_utf8_lossy(&list.stdout).lines().any(|l| l.split_whitespace().any(|w| w.trim_start_matches('*') == lane));
+    let have = String::from_utf8_lossy(&list.stdout).lines().any(|l| l.split_whitespace().any(|w| w.trim_start_matches(|c: char| !c.is_alphanumeric()) == lane));
     if have {
         return Ok(());
     }
