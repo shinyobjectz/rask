@@ -92,7 +92,15 @@ pub fn not_done(root: &Path, main: &str, id: &str, feature: &str) -> Result<Vec<
     }
     let shas = commits(root, main, id)?;
     if shas.is_empty() {
-        why.push(format!("no commit on {main} starts \"{id}: \" (land the branch first)"));
+        // built before its project used rask: no commit names it, so the @done tag on main (and no mark left) is the
+        // record; a task planned since names its commits and never takes this path
+        if !tagged {
+            why.push(format!("no commit on {main} starts \"{id}: \" (land the branch first)"));
+        }
+        let left = git(root, &["grep", "-n", "-E", &format!("rask: {id}([^A-Za-z0-9-]|$)"), main, "--", "*.rs"]).unwrap_or_default();
+        for l in left.lines().take(5) {
+            why.push(format!("still marked on {main}: {}", l.trim_start_matches(&format!("{main}:"))));
+        }
         return Ok(why);
     }
     let touched = shas.iter().any(|s| git(root, &["diff-tree", "--no-commit-id", "--name-only", "-r", s]).is_ok_and(|o| o.lines().any(|l| l == feature)));

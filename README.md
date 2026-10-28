@@ -23,7 +23,8 @@ Tasks for Rust projects, planned in feature files, marked in the code, and check
 - **Done is said, then checked.** The commit that finishes SH1 tags its scenario `@done` and writes its status there.
   `rask done SH1` closes it only when that tag is on `origin/main`, commits whose messages start `SH1: ` are there and
   changed the feature file, no `rask: SH1` mark is left, and no file they touched holds a loose stub. A commit named
-  `SH1: ` without the tag is progress, not the end.
+  `SH1: ` without the tag is progress, not the end. A task built before its project used rask has no such commits:
+  the tag on `origin/main` and no mark left close it.
 - **Claims are live.** `rask claim SH1 shaders` gives SH1 to the lane `shaders` and makes that GitButler branch if
   it's missing. Claims live outside git (`~/.local/state/rask`, or `RASK_BOARD`), so every branch and session sees
   them at once. `rask ls`, `rask ready` and `rask show ID` read the board.
